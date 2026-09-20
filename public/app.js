@@ -1,5 +1,6 @@
 /**
  * Orbitale — Application Controller & Canvas Rendering
+ * Real-time relativistic & astrophysical canvas rendering pipeline.
  */
 
 (function () {
@@ -16,15 +17,14 @@
   let trailLength = 50;
 
   // Selected spawn mass
-  let currentSpawnMass = 25; // 5 = Comet, 25 = Terrestrial, 150 = Giant, 600 = Star
+  let currentSpawnMass = 25; // 5 = Comet, 25 = Terrestrial, 150 = Giant, 600 = Star, 1400 = Black Hole
 
   // Drag-to-fling interaction state
   let isDragging = false;
   let dragStart = { x: 0, y: 0 };
   let dragCurrent = { x: 0, y: 0 };
 
-  // Sound ripple visual effects
-  const ripples = [];
+  // Sound ripple & stardust ambient visual effects
   const stardust = [];
 
   function resize() {
@@ -40,7 +40,8 @@
   // User gesture to start AudioContext
   function ensureAudio() {
     audio.resume();
-    document.getElementById('audio-status').classList.remove('audio-muted');
+    const statusEl = document.getElementById('audio-status');
+    if (statusEl) statusEl.classList.remove('audio-muted');
   }
   window.addEventListener('click', ensureAudio, { once: true });
   window.addEventListener('touchstart', ensureAudio, { once: true });
@@ -137,10 +138,9 @@
     if (!isPaused) {
       physics.step(dt, width, height);
 
-      // Emit stardust particles from moving bodies
+      // Emit ambient micro-stardust particles from moving bodies
       physics.bodies.forEach(b => {
         if (Math.random() < 0.45 && b.trail.length > 0) {
-          const speed = b.getSpeed();
           stardust.push({
             x: b.x + (Math.random() - 0.5) * b.radius * 0.8,
             y: b.y + (Math.random() - 0.5) * b.radius * 0.8,
@@ -157,10 +157,10 @@
     }
 
     // Motion blur canvas clearing
-    ctx.fillStyle = 'rgba(7, 8, 13, 0.25)';
+    ctx.fillStyle = 'rgba(7, 8, 13, 0.28)';
     ctx.fillRect(0, 0, width, height);
 
-    // Draw Resonance Rings with subtle pulse
+    // Draw Resonance Rings with subtle harmonic pulse
     if (physics.ringsEnabled) {
       ctx.save();
       physics.resonanceRings.forEach((r, idx) => {
@@ -174,7 +174,120 @@
       ctx.restore();
     }
 
-    // 1. Update and Render Stardust Wake (Additive Blending)
+    // =========================================================================
+    // 1. Spacetime & Thermonuclear Blast Shockwaves
+    // =========================================================================
+    if (physics.shockwaves && physics.shockwaves.length > 0) {
+      ctx.save();
+      for (let i = 0; i < physics.shockwaves.length; i++) {
+        const sw = physics.shockwaves[i];
+        const alpha = sw.alpha;
+        if (alpha <= 0.001) continue;
+
+        ctx.lineWidth = Math.max(1, sw.width * (1 - sw.progress * 0.5));
+
+        if (sw.type === 'gravitational') {
+          // Relativistic Gravitational Wave Interference Pattern
+          ctx.globalCompositeOperation = 'lighter';
+          // Primary Wavefront
+          ctx.strokeStyle = `rgba(0, 242, 254, ${alpha * 0.85})`;
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Chromatic Dispersion Secondary Wavefront (Lensed redshift echo)
+          ctx.lineWidth = Math.max(1, sw.width * 0.6);
+          ctx.strokeStyle = `rgba(168, 85, 247, ${alpha * 0.65})`;
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, Math.max(1, sw.r - 8), 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Inner Ripple
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.4})`;
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, Math.max(1, sw.r - 18), 0, Math.PI * 2);
+          ctx.stroke();
+        } else if (sw.type === 'supernova') {
+          // Thermonuclear Supernova Blast Shell
+          ctx.globalCompositeOperation = 'lighter';
+          const grad = ctx.createRadialGradient(sw.x, sw.y, Math.max(0, sw.r - 25), sw.x, sw.y, sw.r + 15);
+          grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+          grad.addColorStop(0.6, `rgba(255, 240, 200, ${alpha * 0.9})`);
+          grad.addColorStop(0.85, `rgba(255, 75, 75, ${alpha * 0.7})`);
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, sw.r + 15, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.95})`;
+          ctx.lineWidth = sw.width;
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
+          // Standard Impact / CME / Compression Wavefront
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.strokeStyle = sw.color;
+          ctx.globalAlpha = alpha * 0.75;
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+          ctx.stroke();
+
+          if (sw.secondaryColor) {
+            ctx.lineWidth = Math.max(0.8, sw.width * 0.5);
+            ctx.strokeStyle = sw.secondaryColor;
+            ctx.globalAlpha = alpha * 0.45;
+            ctx.beginPath();
+            ctx.arc(sw.x, sw.y, Math.max(1, sw.r - 5), 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    // =========================================================================
+    // 2. Physical Debris & Ejecta Particles (Gravitationally pulled fragments)
+    // =========================================================================
+    if (physics.debris && physics.debris.length > 0) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < physics.debris.length; i++) {
+        const d = physics.debris[i];
+        const progress = d.life / d.maxLife;
+        const curAlpha = Math.max(0, 1 - progress);
+
+        // Motion trail streak for ejecta
+        const speed = Math.hypot(d.vx, d.vy);
+        const streakLen = Math.min(speed * 0.08, 12);
+        const normVx = speed > 0.001 ? (d.vx / speed) : 0;
+        const normVy = speed > 0.001 ? (d.vy / speed) : 0;
+
+        ctx.strokeStyle = d.color;
+        ctx.globalAlpha = curAlpha * 0.7;
+        ctx.lineWidth = d.size * (1 - progress * 0.4);
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(d.x - normVx * streakLen, d.y - normVy * streakLen);
+        ctx.lineTo(d.x, d.y);
+        ctx.stroke();
+
+        // Hot incandescent particle head
+        ctx.fillStyle = d.type === 'magma' && progress < 0.4 ? '#ffffff' : d.color;
+        ctx.globalAlpha = curAlpha;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, Math.max(0.8, d.size * (1 - progress * 0.3)), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // =========================================================================
+    // 3. Stardust Wake (Ambient Body Particle Wake)
+    // =========================================================================
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     for (let i = stardust.length - 1; i >= 0; i--) {
@@ -196,7 +309,9 @@
     }
     ctx.restore();
 
-    // 2. Draw Tapered Luminous Trails
+    // =========================================================================
+    // 4. Luminous Tapered Gravitational Trails
+    // =========================================================================
     physics.bodies.forEach((b) => {
       if (b.trail.length > 2) {
         ctx.save();
@@ -235,7 +350,9 @@
     // Find primary light source (e.g. star, or center of mass)
     const primaryStar = physics.bodies.find(b => b.type === 'star') || { x: physics.center.x, y: physics.center.y };
 
-    // 3. Draw Celestial Bodies with Dynamic Relativistic Accretion & Multi-Band Planetary Rings
+    // =========================================================================
+    // 5. Celestial Bodies Rendering Pipeline
+    // =========================================================================
     physics.bodies.forEach((b) => {
       const r = b.radius;
       const dxToLight = primaryStar.x - b.x;
@@ -243,14 +360,15 @@
       const lightAngle = Math.atan2(dyToLight, dxToLight);
       const isStar = b.type === 'star';
       const isHole = b.type === 'black_hole';
+      const isGiant = b.type === 'gas_giant' || b.type === 'ice_giant';
 
       ctx.save();
 
-      // ==========================================
-      // BLACK HOLE RENDERING PIPELINE
-      // ==========================================
+      // -----------------------------------------------------------------------
+      // A. BLACK HOLE PIPELINE
+      // -----------------------------------------------------------------------
       if (isHole) {
-        // A. Spacetime Curvature & Gravitational Lensing Distortion Halo
+        // Spacetime Gravitational Lensing Halo
         const warpR = r * 4.6 * (1 + b.flash * 0.4);
         const lensGrad = ctx.createRadialGradient(b.x, b.y, r * 0.7, b.x, b.y, warpR);
         lensGrad.addColorStop(0, 'rgba(0, 0, 0, 0.98)');
@@ -263,13 +381,13 @@
         ctx.arc(b.x, b.y, warpR, 0, Math.PI * 2);
         ctx.fill();
 
-        // B. Relativistic Gravitational Arch (Optically Lensed Back of Accretion Disk)
+        // Relativistic Gravitational Arch (Optically Lensed Back of Accretion Disk)
         ctx.save();
         ctx.translate(b.x, b.y);
         ctx.rotate(b.diskAngle || 0.26);
         ctx.globalCompositeOperation = 'lighter';
 
-        // Upper Lensed Arch (bent over the top pole)
+        // Upper Lensed Arch (bent over top pole)
         ctx.save();
         ctx.scale(1.02, 1.45);
         const archGradTop = ctx.createLinearGradient(0, -r * 2.5, 0, 0);
@@ -283,7 +401,7 @@
         ctx.stroke();
         ctx.restore();
 
-        // Lower Lensed Arch (bent under the bottom pole)
+        // Lower Lensed Arch (bent under bottom pole)
         ctx.save();
         ctx.scale(1.02, 1.35);
         const archGradBottom = ctx.createLinearGradient(0, r * 2.2, 0, 0);
@@ -297,7 +415,7 @@
         ctx.stroke();
         ctx.restore();
 
-        // C. Back Half of Accretion Disk Particles (behind the event horizon)
+        // Back Half of Accretion Disk Particles
         if (b.accretionParticles) {
           for (let i = 0; i < b.accretionParticles.length; i++) {
             const p = b.accretionParticles[i];
@@ -308,7 +426,7 @@
             const px = cosA * p.r;
             const py = sinA * p.r * (b.diskTilt || 0.32);
 
-            // Relativistic Doppler boosting: Approaching (left) is hotter/bluer
+            // Doppler boosting: Approaching is hotter/bluer
             const doppler = Math.max(0.2, 1.0 - cosA * 0.7);
             const pRad = p.size * (0.8 + doppler * 0.6);
 
@@ -325,7 +443,7 @@
         }
         ctx.restore();
 
-        // D. Bipolar Relativistic Plasma Jets
+        // Bipolar Relativistic Plasma Jets
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
         const jetAngle = (b.diskAngle || 0.26) + Math.PI / 2;
@@ -351,8 +469,7 @@
         });
         ctx.restore();
 
-        // E. The Event Horizon Void & Razor-Sharp Photon Sphere
-        // 1. Brilliant Photon Sphere (Relativistic light boundary)
+        // Photon Sphere (Razor-Sharp Lensing Boundary)
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
         ctx.lineWidth = 2.8;
@@ -364,13 +481,13 @@
         ctx.stroke();
         ctx.restore();
 
-        // 2. Pure Black Event Horizon Core
+        // Pure Black Event Horizon Core
         ctx.fillStyle = '#000000';
         ctx.beginPath();
         ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
         ctx.fill();
 
-        // F. Front Half of Accretion Disk Particles (In front of horizon with Doppler glare)
+        // Front Half of Accretion Disk Particles
         if (b.accretionParticles) {
           ctx.save();
           ctx.translate(b.x, b.y);
@@ -382,14 +499,14 @@
           ctx.scale(1, b.diskTilt || 0.32);
           ctx.lineWidth = r * 0.75;
           const diskRingGrad = ctx.createLinearGradient(-r * 3.5, 0, r * 3.5, 0);
-          diskRingGrad.addColorStop(0, 'rgba(180, 240, 255, 0.85)'); // Approaching beam
+          diskRingGrad.addColorStop(0, 'rgba(180, 240, 255, 0.85)');
           diskRingGrad.addColorStop(0.4, 'rgba(255, 200, 60, 0.7)');
-          diskRingGrad.addColorStop(1, 'rgba(255, 50, 20, 0.35)');  // Receding tail
+          diskRingGrad.addColorStop(1, 'rgba(255, 50, 20, 0.35)');
           ctx.strokeStyle = diskRingGrad;
           ctx.shadowColor = '#ff9900';
           ctx.shadowBlur = 18;
           ctx.beginPath();
-          ctx.arc(0, 0, r * 2.2, 0, Math.PI); // Front half
+          ctx.arc(0, 0, r * 2.2, 0, Math.PI);
           ctx.stroke();
           ctx.restore();
 
@@ -397,7 +514,7 @@
           for (let i = 0; i < b.accretionParticles.length; i++) {
             const p = b.accretionParticles[i];
             const sinA = Math.sin(p.angle);
-            if (sinA < 0) continue; // Front half only
+            if (sinA < 0) continue;
 
             const cosA = Math.cos(p.angle);
             const px = cosA * p.r;
@@ -419,18 +536,17 @@
           ctx.restore();
         }
 
-      // ==========================================
-      // PLANET & STAR RENDERING PIPELINE
-      // ==========================================
+      // -----------------------------------------------------------------------
+      // B. STARS, GIANTS & PLANETS PIPELINE
+      // -----------------------------------------------------------------------
       } else {
-        // A. Back Half of Planetary Rings (Behind Planet)
+        // Back Half of Planetary Rings (Behind Planet)
         if (b.hasRings) {
           ctx.save();
           ctx.translate(b.x, b.y);
           ctx.rotate(b.ringAngle);
           ctx.scale(1, b.ringTilt);
 
-          // Upper half is behind [Math.PI to 2*Math.PI]
           const startA = Math.PI;
           const endA = Math.PI * 2;
 
@@ -448,7 +564,7 @@
           ctx.strokeStyle = 'rgba(255, 240, 200, 0.45)';
           ctx.stroke();
 
-          // Outer A-Ring (after Cassini gap)
+          // Outer A-Ring
           ctx.beginPath();
           ctx.arc(0, 0, (b.ringCassiniOut + b.ringOuter) / 2, startA, endA);
           ctx.lineWidth = (b.ringOuter - b.ringCassiniOut);
@@ -458,10 +574,10 @@
           ctx.restore();
         }
 
-        // B. Outer Radiant Bloom Corona (Stars & Planets)
+        // Outer Radiant Bloom Corona
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
-        const coronaR = r * (isStar ? 3.4 : 2.2) * (1 + b.flash * 0.8);
+        const coronaR = r * (isStar ? 3.6 : 2.2) * (1 + b.flash * 0.8);
         const coronaGrad = ctx.createRadialGradient(b.x, b.y, r * 0.5, b.x, b.y, coronaR);
         coronaGrad.addColorStop(0, b.color);
         coronaGrad.addColorStop(0.4, b.glowColor || 'rgba(0,242,254,0.15)');
@@ -471,87 +587,184 @@
         ctx.arc(b.x, b.y, coronaR, 0, Math.PI * 2);
         ctx.fill();
 
-        // Coronal Solar Flares for Stars
+        // Dynamic Magnetic Coronal Prominence Arches for Stars
         if (isStar) {
-          ctx.lineWidth = 1.5;
-          const numRays = 12;
-          for (let k = 0; k < numRays; k++) {
-            const rayAngle = b.flarePhase + (k * Math.PI * 2) / numRays;
-            const rayLen = r * (1.6 + Math.sin(b.flarePhase * 2 + k) * 0.45);
+          ctx.lineWidth = 1.8;
+          const numProminences = 8;
+          for (let k = 0; k < numProminences; k++) {
+            const promA = b.flarePhase * 0.8 + (k * Math.PI * 2) / numProminences;
+            const loopH = r * (0.4 + Math.sin(b.flarePhase * 2 + k * 1.5) * 0.25);
+            const p1x = b.x + Math.cos(promA - 0.15) * r;
+            const p1y = b.y + Math.sin(promA - 0.15) * r;
+            const p2x = b.x + Math.cos(promA + 0.15) * r;
+            const p2y = b.y + Math.sin(promA + 0.15) * r;
+            const cpx = b.x + Math.cos(promA) * (r + loopH);
+            const cpy = b.y + Math.sin(promA) * (r + loopH);
+
             ctx.strokeStyle = b.secondaryColor;
-            ctx.globalAlpha = 0.35 + Math.sin(b.flarePhase * 3 + k) * 0.2;
+            ctx.globalAlpha = 0.45 + Math.sin(b.flarePhase * 3 + k) * 0.25;
             ctx.beginPath();
-            ctx.moveTo(b.x + Math.cos(rayAngle) * r * 0.8, b.y + Math.sin(rayAngle) * r * 0.8);
-            ctx.lineTo(b.x + Math.cos(rayAngle) * rayLen, b.y + Math.sin(rayAngle) * rayLen);
+            ctx.moveTo(p1x, p1y);
+            ctx.quadraticCurveTo(cpx, cpy, p2x, p2y);
             ctx.stroke();
           }
         }
         ctx.restore();
 
-        // C. 3D Spherical Core Rendering
+        // 3D Spherical Core (Clipped)
         ctx.save();
         ctx.beginPath();
         ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
         ctx.clip();
 
         if (isStar) {
-          // Star Plasma Core
+          // Photospheric Solar Core with Authentic Limb Darkening
           const starGrad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
-          starGrad.addColorStop(0, '#ffffff');
-          starGrad.addColorStop(0.2, b.secondaryColor);
-          starGrad.addColorStop(0.7, b.color);
-          starGrad.addColorStop(1, '#ff1a1a');
+          starGrad.addColorStop(0, '#ffffff'); // Blazing white-hot core
+          starGrad.addColorStop(0.25, b.secondaryColor);
+          starGrad.addColorStop(0.72, b.color);
+          starGrad.addColorStop(1, '#660505'); // Solar limb darkening
           ctx.fillStyle = starGrad;
           ctx.fill();
+
+          // Granulation / Convective Cells Shimmer
+          ctx.save();
+          ctx.globalCompositeOperation = 'overlay';
+          ctx.rotate(b.rotation * 0.5);
+          for (let g = 0; g < 4; g++) {
+            const ga = (g / 4) * Math.PI * 2 + b.rotation;
+            const gx = b.x + Math.cos(ga) * (r * 0.45);
+            const gy = b.y + Math.sin(ga) * (r * 0.45);
+            const gGrad = ctx.createRadialGradient(gx, gy, 0, gx, gy, r * 0.4);
+            gGrad.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+            gGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = gGrad;
+            ctx.beginPath();
+            ctx.arc(gx, gy, r * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
         } else {
-          // 3D Sphere Shading with Light Vector
+          // 3D Spherical Lighting with Primary Light Direction
           const lightOffsetDist = r * 0.45;
           const lx = b.x + Math.cos(lightAngle) * lightOffsetDist;
           const ly = b.y + Math.sin(lightAngle) * lightOffsetDist;
 
           const sphereGrad = ctx.createRadialGradient(lx, ly, r * 0.05, b.x, b.y, r * 1.05);
           sphereGrad.addColorStop(0, '#ffffff');
-          sphereGrad.addColorStop(0.2, b.secondaryColor || b.color);
-          sphereGrad.addColorStop(0.65, b.color);
-          sphereGrad.addColorStop(1, '#05070a');
+          sphereGrad.addColorStop(0.22, b.secondaryColor || b.color);
+          sphereGrad.addColorStop(0.68, b.color);
+          sphereGrad.addColorStop(1, '#05070a'); // Deep dark planetary nightside
 
           ctx.fillStyle = sphereGrad;
           ctx.fill();
 
-          // Atmospheric Banding / Texture
-          ctx.save();
-          ctx.rotate(b.rotation);
-          ctx.lineWidth = r * 0.14;
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-          ctx.beginPath();
-          ctx.moveTo(b.x - r, b.y - r * 0.2);
-          ctx.lineTo(b.x + r, b.y - r * 0.2);
-          ctx.moveTo(b.x - r, b.y + r * 0.25);
-          ctx.lineTo(b.x + r, b.y + r * 0.25);
-          ctx.stroke();
-          ctx.restore();
+          // Gas Giant Atmospheric Belts with Differential Rotation
+          if (isGiant) {
+            ctx.save();
+            ctx.translate(b.x, b.y);
+            ctx.rotate(b.ringAngle || -0.42);
 
-          // Atmospheric Rim Glow / Fresnel Scattering
+            const beltColors = [
+              'rgba(255, 255, 255, 0.12)',
+              'rgba(0, 0, 0, 0.16)',
+              'rgba(255, 220, 160, 0.14)',
+              'rgba(0, 0, 0, 0.18)'
+            ];
+
+            // 4 latitudinal atmospheric zones
+            [-0.55, -0.2, 0.2, 0.55].forEach((pos, idx) => {
+              ctx.lineWidth = r * 0.24;
+              ctx.strokeStyle = beltColors[idx % beltColors.length];
+              ctx.beginPath();
+              ctx.moveTo(-r * 1.1, pos * r);
+              ctx.lineTo(r * 1.1, pos * r);
+              ctx.stroke();
+            });
+
+            // Great Cyclonic Storm Spot (Jupiter Red Spot / Neptune Dark Spot)
+            const stormA = b.rotation * 1.5;
+            const stormX = Math.cos(stormA) * r * 0.55;
+            const stormY = r * 0.22;
+            ctx.fillStyle = 'rgba(210, 40, 20, 0.55)';
+            ctx.beginPath();
+            ctx.ellipse(stormX, stormY, r * 0.22, r * 0.12, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+          }
+
+          // Specular Ocean Glint for Terrestrial Rocky/Ocean Worlds
+          if (b.type === 'terrestrial') {
+            const specX = (lx + b.x) / 2;
+            const specY = (ly + b.y) / 2;
+            const specGrad = ctx.createRadialGradient(specX, specY, 0, specX, specY, r * 0.35);
+            specGrad.addColorStop(0, 'rgba(255, 255, 255, 0.65)');
+            specGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
+            specGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = specGrad;
+            ctx.beginPath();
+            ctx.arc(specX, specY, r * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Rayleigh Atmospheric Limb Scattering
+          ctx.save();
           ctx.globalCompositeOperation = 'screen';
           const rimGrad = ctx.createRadialGradient(b.x, b.y, r * 0.8, b.x, b.y, r);
           rimGrad.addColorStop(0, 'rgba(0,0,0,0)');
-          rimGrad.addColorStop(0.85, 'rgba(255,255,255,0.05)');
+          rimGrad.addColorStop(0.85, 'rgba(255,255,255,0.08)');
           rimGrad.addColorStop(1, b.color);
           ctx.fillStyle = rimGrad;
           ctx.beginPath();
           ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
           ctx.fill();
-        }
-        ctx.restore();
+          ctx.restore();
 
-        // D. Front Half of Planetary Rings (In Front of Planet + Planet Shadow Cast)
+          // ===================================================================
+          // Molten Magma Surface Fissures (From Mergers & High-Energy Collisions)
+          // ===================================================================
+          if (b.heat > 0.02) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            const heatAlpha = b.heat;
+            ctx.lineWidth = Math.max(1.2, r * 0.16 * heatAlpha);
+            ctx.strokeStyle = `rgba(255, 110, 20, ${heatAlpha * 0.9})`;
+            ctx.shadowColor = '#ff4500';
+            ctx.shadowBlur = 10 * heatAlpha;
+
+            // Branched crack network
+            ctx.beginPath();
+            ctx.moveTo(b.x - r * 0.7, b.y - r * 0.1);
+            ctx.lineTo(b.x - r * 0.1, b.y + r * 0.2);
+            ctx.lineTo(b.x + r * 0.6, b.y - r * 0.2);
+            ctx.moveTo(b.x - r * 0.1, b.y + r * 0.2);
+            ctx.lineTo(b.x + r * 0.2, b.y + r * 0.6);
+            ctx.stroke();
+
+            // Incandescent white-hot core of the fissures
+            ctx.lineWidth = Math.max(0.6, r * 0.06 * heatAlpha);
+            ctx.strokeStyle = `rgba(255, 255, 220, ${heatAlpha * 0.95})`;
+            ctx.beginPath();
+            ctx.moveTo(b.x - r * 0.7, b.y - r * 0.1);
+            ctx.lineTo(b.x - r * 0.1, b.y + r * 0.2);
+            ctx.lineTo(b.x + r * 0.6, b.y - r * 0.2);
+            ctx.moveTo(b.x - r * 0.1, b.y + r * 0.2);
+            ctx.lineTo(b.x + r * 0.2, b.y + r * 0.6);
+            ctx.stroke();
+
+            ctx.restore();
+          }
+        }
+        ctx.restore(); // End clipped sphere
+
+        // Front Half of Planetary Rings (In Front of Planet + Planet Shadow Cast)
         if (b.hasRings) {
           ctx.save();
           ctx.translate(b.x, b.y);
           ctx.rotate(b.ringAngle);
           ctx.scale(1, b.ringTilt);
 
-          // Lower half is in front [0 to Math.PI]
           const startA = 0;
           const endA = Math.PI;
 
@@ -576,7 +789,7 @@
           ctx.strokeStyle = 'rgba(220, 240, 255, 0.38)';
           ctx.stroke();
 
-          // Realistic Planet Shadow Cast onto the Ring
+          // Planet Shadow Cast onto the Ring Plane
           const relLightAngle = lightAngle - b.ringAngle;
           const shadowAngle = relLightAngle + Math.PI;
           const normShadow = ((shadowAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
@@ -596,7 +809,9 @@
         }
       }
 
-      // E. Resonance & Gravitational Wave Shockwave
+      // -----------------------------------------------------------------------
+      // C. RESONANCE & GRAVITATIONAL WAVE SHOCKWAVE FLASH
+      // -----------------------------------------------------------------------
       if (b.flash > 0.02) {
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
@@ -607,7 +822,6 @@
         ctx.arc(b.x, b.y, r + (1.0 - b.flash) * (isHole ? 75 : 48), 0, Math.PI * 2);
         ctx.stroke();
 
-        // Secondary chromatic ring
         ctx.lineWidth = 1.5;
         ctx.strokeStyle = isHole ? '#ff0844' : b.secondaryColor;
         ctx.globalAlpha = b.flash * 0.7;
@@ -620,14 +834,14 @@
       ctx.restore();
     });
 
-    // Draw Drag Velocity Arrow
+    // =========================================================================
+    // 6. Draw Drag Velocity Trajectory Preview
+    // =========================================================================
     if (isDragging) {
       ctx.save();
       const dx = dragStart.x - dragCurrent.x;
       const dy = dragStart.y - dragCurrent.y;
-      const dist = Math.hypot(dx, dy);
 
-      // Trajectory line
       ctx.strokeStyle = '#00f2fe';
       ctx.lineWidth = 2;
       ctx.setLineDash([4, 4]);
@@ -636,7 +850,6 @@
       ctx.lineTo(dragStart.x + dx, dragStart.y + dy);
       ctx.stroke();
 
-      // Preview Spawn Planet
       ctx.setLineDash([]);
       ctx.fillStyle = 'rgba(0, 242, 254, 0.4)';
       ctx.strokeStyle = '#00f2fe';
@@ -653,6 +866,8 @@
     document.getElementById('hud-fps').textContent = avgFps;
     document.getElementById('hud-bodies').textContent = physics.bodies.length;
     document.getElementById('hud-events').textContent = physics.totalEvents;
+    const hudMergers = document.getElementById('hud-mergers');
+    if (hudMergers) hudMergers.textContent = physics.mergerCount;
   }
 
   requestAnimationFrame(loop);
@@ -671,6 +886,13 @@
   document.getElementById('preset-select').addEventListener('change', (e) => {
     physics.loadPreset(e.target.value, width, height);
   });
+
+  const collisionSelect = document.getElementById('collision-select');
+  if (collisionSelect) {
+    collisionSelect.addEventListener('change', (e) => {
+      physics.collisionMode = e.target.value;
+    });
+  }
 
   document.getElementById('scale-select').addEventListener('change', (e) => {
     audio.setScale(e.target.value);

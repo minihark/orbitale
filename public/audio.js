@@ -278,6 +278,161 @@ class CosmicAudioEngine {
     osc.stop(t + 2.3);
   }
 
+  /**
+   * Stellar Supernova / Core Collapse Detonation
+   */
+  triggerSupernovaExplosion(panX = 0) {
+    if (!this.initialized || this.isMuted) return;
+    this.resume();
+
+    const t = this.ctx.currentTime;
+    
+    // 1. Sub-bass concussive implosion boom
+    const boomOsc = this.ctx.createOscillator();
+    const boomGain = this.ctx.createGain();
+    boomOsc.type = 'sine';
+    boomOsc.frequency.setValueAtTime(90, t);
+    boomOsc.frequency.exponentialRampToValueAtTime(24, t + 0.9);
+    boomGain.gain.setValueAtTime(0.8, t);
+    boomGain.gain.exponentialRampToValueAtTime(0.001, t + 2.8);
+    boomOsc.connect(boomGain);
+    boomGain.connect(this.masterGain);
+    boomGain.connect(this.reverbNode);
+    boomOsc.start(t);
+    boomOsc.stop(t + 2.9);
+
+    // 2. High-energy plasma detonation burst (filtered noise)
+    const bufSize = this.ctx.sampleRate * 0.6;
+    const noiseBuffer = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) {
+      output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.12));
+    }
+    const noiseSrc = this.ctx.createBufferSource();
+    noiseSrc.buffer = noiseBuffer;
+    const noiseFilter = this.ctx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.setValueAtTime(650, t);
+    noiseFilter.Q.setValueAtTime(3.5, t);
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.45, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+    noiseSrc.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(this.reverbNode);
+    noiseSrc.start(t);
+
+    // 3. Shimmering cosmic ringdown chime
+    this.triggerChime(0.9, 0.95, panX, 'sparkle');
+  }
+
+  /**
+   * Tidal Disruption Event (TDE) - Relativistic tearing sound
+   */
+  triggerTidalDisruption(panX = 0) {
+    if (!this.initialized || this.isMuted) return;
+    this.resume();
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const mod = this.ctx.createOscillator();
+    const modGain = this.ctx.createGain();
+    const gain = this.ctx.createGain();
+    const filter = this.ctx.createBiquadFilter();
+
+    osc.type = 'sawtooth';
+    mod.type = 'triangle';
+
+    // Shredding frequency drop as matter plunges across event horizon
+    osc.frequency.setValueAtTime(740, t);
+    osc.frequency.exponentialRampToValueAtTime(75, t + 0.85);
+
+    mod.frequency.setValueAtTime(140, t);
+    mod.frequency.linearRampToValueAtTime(32, t + 0.85);
+
+    modGain.gain.setValueAtTime(280, t);
+    modGain.gain.exponentialRampToValueAtTime(10, t + 0.85);
+
+    mod.connect(osc.frequency);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1200, t);
+    filter.frequency.exponentialRampToValueAtTime(240, t + 1.2);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.5, t + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.8);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain);
+    gain.connect(this.reverbNode);
+
+    osc.start(t);
+    mod.start(t);
+    osc.stop(t + 1.9);
+    mod.stop(t + 1.9);
+  }
+
+  /**
+   * Planetary Impact & Crustal Merger
+   */
+  triggerPlanetaryImpact(intensity = 0.5, panX = 0) {
+    if (!this.initialized || this.isMuted) return;
+    this.resume();
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    // Low percussive thud
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(140, t);
+    osc.frequency.exponentialRampToValueAtTime(42, t + 0.25);
+
+    const vol = Math.min(Math.max(intensity, 0.2), 0.9) * 0.7;
+    gain.gain.setValueAtTime(vol, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    gain.connect(this.reverbNode);
+
+    osc.start(t);
+    osc.stop(t + 0.85);
+
+    // Complement with resonant crystal timbre
+    this.triggerChime(0.35 + intensity * 0.3, intensity, panX, 'crystal');
+  }
+
+  /**
+   * Thermonuclear Star Ignition
+   */
+  triggerStellarIgnition(panX = 0) {
+    if (!this.initialized || this.isMuted) return;
+    this.resume();
+
+    const t = this.ctx.currentTime;
+    const base = 98.0; // G2
+    [1, 1.5, 2, 2.67].forEach((ratio, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(base * ratio, t);
+
+      gain.gain.setValueAtTime(0.001, t);
+      gain.gain.linearRampToValueAtTime(0.18 / (i + 1), t + 0.6 + i * 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 3.2);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      gain.connect(this.reverbNode);
+
+      osc.start(t);
+      osc.stop(t + 3.3);
+    });
+  }
+
   setMute(mute) {
     this.isMuted = mute;
     if (this.masterGain && this.ctx) {

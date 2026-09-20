@@ -29,6 +29,9 @@
       <!-- Preset Selection -->
       <select id="preset-select" aria-label="Preset Scenario">
         <option value="kepler">Keplerian Waltz</option>
+        <option value="bh_merger">Binary BH Merger (LIGO)</option>
+        <option value="collision_lab">Planetary Collision Lab</option>
+        <option value="tde">Tidal Disruption Event</option>
         <option value="gargantua">Gargantua (Black Hole)</option>
         <option value="three_body">Three-Body Chaos</option>
         <option value="binary">Binary Pulsar</option>
@@ -59,6 +62,10 @@
       <span id="hud-bodies" class="hud-val">5</span>
     </div>
     <div class="hud-row">
+      <span>COSMIC MERGERS</span>
+      <span id="hud-mergers" class="hud-val">0</span>
+    </div>
+    <div class="hud-row">
       <span>HARMONIC RESONANCES</span>
       <span id="hud-events" class="hud-val">0</span>
     </div>
@@ -69,10 +76,19 @@
   </aside>
 
   <!-- Interactive Hint -->
-  <div id="interaction-hint">✦ Click & Drag anywhere to launch celestial bodies</div>
+  <div id="interaction-hint">✦ Click & Drag anywhere to launch celestial bodies · Collisions cause physical mergers</div>
 
   <!-- Bottom Floating Control Deck -->
   <footer id="control-deck" class="hud-panel">
+    <!-- Collision Mode Selector -->
+    <div class="control-group">
+      <span class="control-label">Collision Physics</span>
+      <select id="collision-select" aria-label="Collision Physics">
+        <option value="merge" selected>Astrophysical Merger</option>
+        <option value="bounce">Elastic Bounce</option>
+      </select>
+    </div>
+
     <!-- Musical Scale -->
     <div class="control-group">
       <span class="control-label">Harmonic Scale</span>
