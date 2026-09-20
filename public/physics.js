@@ -53,11 +53,34 @@ class CelestialBody {
     }
 
     // Rings for giants & Black hole accretion disk parameters
-    this.hasRings = (this.type === 'gas_giant' || this.type === 'ice_giant' || this.type === 'black_hole');
-    this.ringTilt = this.type === 'black_hole' ? 0.38 : (Math.random() * 0.35 + 0.25) * (Math.random() > 0.5 ? 1 : -1);
-    this.ringAngle = Math.random() * Math.PI;
-    this.ringInner = this.type === 'black_hole' ? this.radius * 1.6 : this.radius * 1.5;
-    this.ringOuter = this.type === 'black_hole' ? this.radius * 3.6 : this.radius * 2.6;
+    if (this.type === 'black_hole') {
+      this.hasRings = false; // We use dynamic relativistic accretion disc simulation
+      this.diskAngle = 0.26;
+      this.diskTilt = 0.32;
+      this.accretionParticles = [];
+      const pCount = 160;
+      for (let i = 0; i < pCount; i++) {
+        const rNorm = Math.pow(Math.random(), 0.5);
+        this.accretionParticles.push({
+          r: this.radius * (1.25 + rNorm * 3.2),
+          angle: Math.random() * Math.PI * 2,
+          speed: (1.6 + (1.0 - rNorm) * 3.2) * (0.85 + Math.random() * 0.3),
+          size: Math.random() * 2.4 + 0.8,
+          alpha: Math.random() * 0.5 + 0.5,
+          flicker: Math.random() * Math.PI * 2
+        });
+      }
+    } else if (this.type === 'gas_giant' || this.type === 'ice_giant') {
+      this.hasRings = true;
+      this.ringTilt = 0.28;
+      this.ringAngle = -0.42; // Fixed celestial axial tilt
+      this.ringInner = this.radius * 1.35;
+      this.ringCassiniIn = this.radius * 1.95;
+      this.ringCassiniOut = this.radius * 2.12;
+      this.ringOuter = this.radius * 2.65;
+    } else {
+      this.hasRings = false;
+    }
     this.consumedCount = 0;
 
     // Star / singularity pulsation and rotation
@@ -78,6 +101,19 @@ class CelestialBody {
       this.vy += this.ay * dt;
       this.x += this.vx * dt;
       this.y += this.vy * dt;
+    }
+
+    // Update black hole accretion particles
+    if (this.type === 'black_hole' && this.accretionParticles) {
+      for (let i = 0; i < this.accretionParticles.length; i++) {
+        const p = this.accretionParticles[i];
+        p.angle += (p.speed * (this.radius / (p.r + 0.1))) * dt * 4.8;
+        p.flicker += dt * 6.0;
+        p.r -= dt * 1.2; // Slow infall drift
+        if (p.r < this.radius * 1.15) {
+          p.r = this.radius * (4.0 + Math.random() * 0.4);
+        }
+      }
     }
 
     // Update rotation and flare phase
