@@ -44,77 +44,77 @@ class CelestialBody {
     if (mass >= 1100) {
       this.type = 'black_hole'; // Supermassive Singularity
       this.color = '#000000';
-      this.secondaryColor = '#00f2fe';
-      this.glowColor = 'rgba(170, 70, 255, 0.45)';
+      this.secondaryColor = '#f3e5ab'; // Warm incandescent blackbody gold
+      this.glowColor = 'rgba(235, 175, 90, 0.2)';
       this.radius = Math.max(9, Math.pow(mass, 0.35) * 2.2);
       this.hasRings = false;
 
       // Initialize relativistic accretion disk if missing
       if (!this.accretionParticles || this.accretionParticles.length < 50) {
         this.diskAngle = 0.26;
-        this.diskTilt = 0.32;
+        this.diskTilt = 0.28;
         this.accretionParticles = [];
-        const pCount = 160;
+        const pCount = 140;
         for (let i = 0; i < pCount; i++) {
-          const rNorm = Math.pow(Math.random(), 0.5);
+          const rNorm = Math.pow(Math.random(), 0.6);
           this.accretionParticles.push({
-            r: this.radius * (1.25 + rNorm * 3.2),
+            r: this.radius * (1.3 + rNorm * 2.8),
             angle: Math.random() * Math.PI * 2,
-            speed: (1.6 + (1.0 - rNorm) * 3.2) * (0.85 + Math.random() * 0.3),
-            size: Math.random() * 2.4 + 0.8,
-            alpha: Math.random() * 0.5 + 0.5,
+            speed: (1.5 + (1.0 - rNorm) * 2.8) * (0.88 + Math.random() * 0.25),
+            size: Math.random() * 1.6 + 0.6,
+            alpha: Math.random() * 0.45 + 0.45,
             flicker: Math.random() * Math.PI * 2
           });
         }
       }
     } else if (mass >= 450) {
-      this.type = 'star'; // Solar Star / Pulsar
-      this.color = this.customColor || '#ff4b4b';
-      this.secondaryColor = '#ffe066';
-      this.glowColor = 'rgba(255, 120, 50, 0.45)';
+      this.type = 'star'; // Solar Star / Main-Sequence
+      this.color = this.customColor || '#ffe4a0'; // Authentic warm solar G-type
+      this.secondaryColor = '#fffdf7'; // Core searing white
+      this.glowColor = 'rgba(255, 215, 130, 0.25)';
       this.radius = Math.max(7, Math.pow(mass, 0.38) * 2.8);
       this.hasRings = false;
       this.accretionParticles = null;
     } else if (mass >= 120) {
-      this.type = 'gas_giant'; // Gas Giant with rings
-      this.color = this.customColor || '#ff9d00';
-      this.secondaryColor = '#ffe3a0';
-      this.glowColor = 'rgba(255, 170, 50, 0.3)';
+      this.type = 'gas_giant'; // Jovian / Saturnian
+      this.color = this.customColor || '#d9b48f'; // Creamy ochre & warm sand
+      this.secondaryColor = '#f7ede2';
+      this.glowColor = 'rgba(217, 180, 143, 0.12)';
       this.radius = Math.max(5.5, Math.pow(mass, 0.38) * 2.8);
       this.hasRings = true;
-      this.ringTilt = 0.28;
-      this.ringAngle = -0.42;
+      this.ringTilt = 0.25;
+      this.ringAngle = -0.38;
       this.ringInner = this.radius * 1.35;
       this.ringCassiniIn = this.radius * 1.95;
       this.ringCassiniOut = this.radius * 2.12;
       this.ringOuter = Math.max(this.ringOuter || 0, this.radius * 2.65);
       this.accretionParticles = null;
     } else if (mass >= 35) {
-      this.type = 'ice_giant'; // Neptune / Uranus style
-      this.color = this.customColor || '#00f2fe';
-      this.secondaryColor = '#c2f9ff';
-      this.glowColor = 'rgba(0, 242, 254, 0.3)';
+      this.type = 'ice_giant'; // Uranian / Neptunian
+      this.color = this.customColor || '#4682b4'; // Deep atmospheric cobalt & pale cyan
+      this.secondaryColor = '#a8dadc';
+      this.glowColor = 'rgba(70, 130, 180, 0.12)';
       this.radius = Math.max(4.5, Math.pow(mass, 0.38) * 2.8);
       this.hasRings = true;
-      this.ringTilt = 0.28;
-      this.ringAngle = -0.42;
+      this.ringTilt = 0.25;
+      this.ringAngle = -0.38;
       this.ringInner = this.radius * 1.35;
       this.ringCassiniIn = this.radius * 1.95;
       this.ringCassiniOut = this.radius * 2.12;
       this.ringOuter = Math.max(this.ringOuter || 0, this.radius * 2.65);
       this.accretionParticles = null;
     } else if (mass >= 12) {
-      this.type = 'terrestrial'; // Rocky / Oceanic planet
-      this.color = this.customColor || '#4facfe';
-      this.secondaryColor = '#00f5a0';
-      this.glowColor = 'rgba(79, 172, 254, 0.25)';
+      this.type = 'terrestrial'; // Silicate & Oceanic World
+      this.color = this.customColor || '#1d3557'; // Deep ocean navy
+      this.secondaryColor = '#606c38'; // Continental olive / crustal rock
+      this.glowColor = 'rgba(69, 123, 157, 0.1)';
       this.radius = Math.max(3.5, Math.pow(mass, 0.38) * 2.8);
       this.accretionParticles = null;
     } else {
-      this.type = 'comet'; // Asteroid / Comet
-      this.color = this.customColor || '#a8ff78';
-      this.secondaryColor = '#ffffff';
-      this.glowColor = 'rgba(168, 255, 120, 0.2)';
+      this.type = 'comet'; // Asteroid / Dirty Ice nucleus
+      this.color = this.customColor || '#6c757d'; // Slate chondritic silicate
+      this.secondaryColor = '#e2e8f0'; // Faint ice frost
+      this.glowColor = 'rgba(200, 220, 240, 0.08)';
       this.radius = Math.max(3.0, Math.pow(mass, 0.38) * 2.8);
       this.hasRings = false;
       this.accretionParticles = null;
@@ -851,21 +851,21 @@ class PhysicsEngine {
 
     if (name === 'bh_merger') {
       // Binary Black Hole Merger (LIGO Gravitational Wave Decay)
-      const d = 105;
+      const d = 110;
       const v = 82;
       this.addBody(new CelestialBody({ x: cx - d, y: cy, vx: 0, vy: -v, mass: 1400 }));
       this.addBody(new CelestialBody({ x: cx + d, y: cy, vx: 0, vy: v, mass: 1200 }));
 
-      // Surrounding accretion plasma tracers
-      for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2;
+      // Surrounding Keplerian accretion dust particles
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
         this.addBody(new CelestialBody({
-          x: cx + Math.cos(a) * 280,
-          y: cy + Math.sin(a) * 280,
-          vx: -Math.sin(a) * 75,
-          vy: Math.cos(a) * 75,
+          x: cx + Math.cos(a) * 270,
+          y: cy + Math.sin(a) * 270,
+          vx: -Math.sin(a) * 76,
+          vy: Math.cos(a) * 76,
           mass: 8,
-          color: '#00f2fe'
+          color: ['#f4deb3', '#d9b48f', '#e29578', '#6c757d'][i % 4]
         }));
       }
     } else if (name === 'collision_lab') {
@@ -876,7 +876,7 @@ class PhysicsEngine {
         vx: 85,
         vy: 12,
         mass: 90,
-        color: '#4facfe'
+        color: '#2a6f97' // Oceanic proto-planet
       }));
       this.addBody(new CelestialBody({
         x: cx + 220,
@@ -884,7 +884,7 @@ class PhysicsEngine {
         vx: -85,
         vy: -12,
         mass: 95,
-        color: '#ff9d00'
+        color: '#a06a48' // Silicate/iron terrestrial world
       }));
 
       // Distant spectator moon
@@ -894,7 +894,7 @@ class PhysicsEngine {
         vx: 55,
         vy: 0,
         mass: 14,
-        color: '#00f5a0'
+        color: '#8d99ae'
       }));
     } else if (name === 'tde') {
       // Tidal Disruption Event: Star plunging into Supermassive Black Hole
@@ -905,25 +905,25 @@ class PhysicsEngine {
         vx: 92,
         vy: -18,
         mass: 500,
-        color: '#ffea79'
+        color: '#fff2c2' // Bright solar-type star
       }));
     } else if (name === 'three_body') {
-      // Chaotic Three-Body System with equal masses in tight formation
+      // Chaotic Three-Body System with equal stellar masses
       const m = 180;
       const d = 160;
       const v = 65;
-      this.addBody(new CelestialBody({ x: cx, y: cy - d, vx: v, vy: 0, mass: m, color: '#00f2fe' }));
-      this.addBody(new CelestialBody({ x: cx - d * 0.866, y: cy + d * 0.5, vx: -v * 0.5, vy: -v * 0.866, mass: m, color: '#ff0844' }));
-      this.addBody(new CelestialBody({ x: cx + d * 0.866, y: cy + d * 0.5, vx: -v * 0.5, vy: v * 0.866, mass: m, color: '#ffb199' }));
+      this.addBody(new CelestialBody({ x: cx, y: cy - d, vx: v, vy: 0, mass: m, color: '#f8f9fa' }));
+      this.addBody(new CelestialBody({ x: cx - d * 0.866, y: cy + d * 0.5, vx: -v * 0.5, vy: -v * 0.866, mass: m, color: '#ffe4a0' }));
+      this.addBody(new CelestialBody({ x: cx + d * 0.866, y: cy + d * 0.5, vx: -v * 0.5, vy: v * 0.866, mass: m, color: '#fcd5a0' }));
     } else if (name === 'kepler') {
-      // Massive Central Star with 4 Concentric Resonating Planets
-      this.addBody(new CelestialBody({ x: cx, y: cy, vx: 0, vy: 0, mass: 900, color: '#ffea79', isFixed: true }));
+      // Massive Central Sun with 4 Concentric Resonating Planetary Worlds
+      this.addBody(new CelestialBody({ x: cx, y: cy, vx: 0, vy: 0, mass: 900, color: '#fff0be', isFixed: true }));
 
       const orbits = [
-        { r: 120, v: 95, m: 10, c: '#00f5a0' },
-        { r: 200, v: 74, m: 20, c: '#00f2fe' },
-        { r: 300, v: 60, m: 25, c: '#4facfe' },
-        { r: 420, v: 51, m: 35, c: '#f093fb' },
+        { r: 120, v: 95, m: 10, c: '#8c8d91' }, // Mercury-like rocky cratered world
+        { r: 200, v: 74, m: 20, c: '#1d3557' }, // Earth-like oceanic/terrestrial world
+        { r: 310, v: 59, m: 140, c: '#d9b48f' }, // Saturn/Jupiter ringed gas giant
+        { r: 430, v: 50, m: 45, c: '#4682b4' }, // Neptune/Uranus ice giant
       ];
       orbits.forEach(orb => {
         this.addBody(new CelestialBody({
@@ -939,15 +939,15 @@ class PhysicsEngine {
       // Binary Star System with Orbiting Moons
       const d = 110;
       const v = 72;
-      this.addBody(new CelestialBody({ x: cx - d, y: cy, vx: 0, vy: -v, mass: 450, color: '#ff0844' }));
-      this.addBody(new CelestialBody({ x: cx + d, y: cy, vx: 0, vy: v, mass: 450, color: '#4facfe' }));
+      this.addBody(new CelestialBody({ x: cx - d, y: cy, vx: 0, vy: -v, mass: 450, color: '#fff4d2' }));
+      this.addBody(new CelestialBody({ x: cx + d, y: cy, vx: 0, vy: v, mass: 450, color: '#ffd79b' }));
 
       // Distant explorer moon
-      this.addBody(new CelestialBody({ x: cx, y: cy - 280, vx: 62, vy: 0, mass: 12, color: '#00f5a0' }));
-      this.addBody(new CelestialBody({ x: cx, y: cy + 340, vx: -56, vy: 0, mass: 16, color: '#ffea79' }));
+      this.addBody(new CelestialBody({ x: cx, y: cy - 280, vx: 62, vy: 0, mass: 12, color: '#606c38' }));
+      this.addBody(new CelestialBody({ x: cx, y: cy + 340, vx: -56, vy: 0, mass: 16, color: '#adb5bd' }));
     } else if (name === 'swarm') {
-      // Central Sun with 12 Small Asteroid Belts
-      this.addBody(new CelestialBody({ x: cx, y: cy, vx: 0, vy: 0, mass: 750, color: '#ff9900', isFixed: true }));
+      // Central Sun with 12 Silicate Asteroid Belt Bodies
+      this.addBody(new CelestialBody({ x: cx, y: cy, vx: 0, vy: 0, mass: 750, color: '#ffe6a7', isFixed: true }));
 
       const count = 12;
       for (let i = 0; i < count; i++) {
@@ -960,7 +960,7 @@ class PhysicsEngine {
           vx: -Math.sin(angle) * speed,
           vy: Math.cos(angle) * speed,
           mass: 5 + Math.random() * 15,
-          color: ['#00f2fe', '#f093fb', '#00f5a0', '#ffea79'][i % 4]
+          color: ['#6c757d', '#adb5bd', '#495057', '#7f7f7f'][i % 4]
         }));
       }
     } else if (name === 'gargantua') {
@@ -978,7 +978,7 @@ class PhysicsEngine {
           vx: -Math.sin(angle) * speed,
           vy: Math.cos(angle) * speed,
           mass: 8 + Math.random() * 25,
-          color: ['#00f2fe', '#ffe3a0', '#ff4b4b', '#a8ff78', '#f093fb'][i % 5]
+          color: ['#f4deb3', '#d9b48f', '#6c757d', '#adb5bd', '#3d5a80'][i % 5]
         }));
       }
     }
