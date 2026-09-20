@@ -16,33 +16,56 @@ class CelestialBody {
     this.isFixed = isFixed;
 
     // Radius proportional to cube root of mass (approx constant density)
-    this.radius = radius || Math.max(3, Math.pow(mass, 0.38) * 2.8);
+    this.radius = radius || Math.max(3.5, Math.pow(mass, 0.38) * 2.8);
 
-    // Color palette based on mass / temperature
-    if (color) {
-      this.color = color;
+    // Classification & Color palette
+    if (mass >= 450) {
+      this.type = 'star'; // Solar Star / Pulsar
+      this.color = color || '#ff4b4b';
+      this.secondaryColor = '#ffe066';
+      this.glowColor = 'rgba(255, 120, 50, 0.4)';
+    } else if (mass >= 120) {
+      this.type = 'gas_giant'; // Gas Giant with rings
+      this.color = color || '#ff9d00';
+      this.secondaryColor = '#ffe3a0';
+      this.glowColor = 'rgba(255, 170, 50, 0.3)';
+    } else if (mass >= 35) {
+      this.type = 'ice_giant'; // Neptune / Uranus style
+      this.color = color || '#00f2fe';
+      this.secondaryColor = '#c2f9ff';
+      this.glowColor = 'rgba(0, 242, 254, 0.3)';
+    } else if (mass >= 12) {
+      this.type = 'terrestrial'; // Rocky / Oceanic planet
+      this.color = color || '#4facfe';
+      this.secondaryColor = '#00f5a0';
+      this.glowColor = 'rgba(79, 172, 254, 0.25)';
     } else {
-      if (mass >= 500) {
-        this.color = '#ff3366'; // Supermassive / Hypergiant / Red Pulsar
-      } else if (mass >= 150) {
-        this.color = '#ff9900'; // Amber Star
-      } else if (mass >= 40) {
-        this.color = '#00f2fe'; // Cyan Giant
-      } else if (mass >= 15) {
-        this.color = '#4facfe'; // Blue terrestrial
-      } else {
-        this.color = '#a8ff78'; // Green comet / asteroid
-      }
+      this.type = 'comet'; // Asteroid / Comet
+      this.color = color || '#a8ff78';
+      this.secondaryColor = '#ffffff';
+      this.glowColor = 'rgba(168, 255, 120, 0.2)';
     }
 
+    // Rings for giants
+    this.hasRings = (this.type === 'gas_giant' || this.type === 'ice_giant');
+    this.ringTilt = (Math.random() * 0.35 + 0.25) * (Math.random() > 0.5 ? 1 : -1);
+    this.ringAngle = Math.random() * Math.PI;
+    this.ringInner = this.radius * 1.5;
+    this.ringOuter = this.radius * 2.6;
+
+    // Star pulsation and rotation
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotationSpeed = (Math.random() - 0.5) * 1.2;
+    this.flarePhase = Math.random() * Math.PI * 2;
+
     this.trail = [];
-    this.maxTrail = 60;
+    this.maxTrail = 65;
     this.lastRingCrossed = -1;
     this.proximityCooloff = 0;
     this.flash = 0; // Flash animation on sound trigger
   }
 
-  update(dt, trailDecay = 60) {
+  update(dt, trailDecay = 65) {
     if (!this.isFixed) {
       this.vx += this.ax * dt;
       this.vy += this.ay * dt;
@@ -50,12 +73,24 @@ class CelestialBody {
       this.y += this.vy * dt;
     }
 
+    // Update rotation and flare phase
+    this.rotation += this.rotationSpeed * dt;
+    this.flarePhase += dt * 3.5;
+
     // Reset accelerations
     this.ax = 0;
     this.ay = 0;
 
-    // Update trail
-    this.trail.push({ x: this.x, y: this.y, color: this.color });
+    // Update trail with timestamp & velocity for dynamic taper
+    const speed = this.getSpeed();
+    this.trail.push({ 
+      x: this.x, 
+      y: this.y, 
+      vx: this.vx, 
+      vy: this.vy, 
+      speed: speed,
+      color: this.color 
+    });
     if (this.trail.length > trailDecay) {
       this.trail.shift();
     }
