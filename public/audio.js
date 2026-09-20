@@ -235,6 +235,49 @@ class CosmicAudioEngine {
     modulator.stop(t + decayTime + 0.1);
   }
 
+  /**
+   * Gravitational Wave Chirp (LIGO Black Hole Merger Simulation)
+   * Sweeping sub-bass chirp from 32Hz to 320Hz into the reverb buffer.
+   */
+  triggerGravitationalChirp(panX = 0) {
+    if (!this.initialized || this.isMuted) return;
+    this.resume();
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const filter = this.ctx.createBiquadFilter();
+    const panner = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(32, t);
+    osc.frequency.exponentialRampToValueAtTime(320, t + 0.38);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(140, t);
+    filter.frequency.linearRampToValueAtTime(480, t + 0.38);
+
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(0.65, t + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
+
+    osc.connect(filter);
+    filter.connect(gain);
+
+    if (panner) {
+      panner.pan.setValueAtTime(Math.max(-0.95, Math.min(0.95, panX)), t);
+      gain.connect(panner);
+      panner.connect(this.masterGain);
+      panner.connect(this.reverbNode);
+    } else {
+      gain.connect(this.masterGain);
+      gain.connect(this.reverbNode);
+    }
+
+    osc.start(t);
+    osc.stop(t + 2.3);
+  }
+
   setMute(mute) {
     this.isMuted = mute;
     if (this.masterGain && this.ctx) {

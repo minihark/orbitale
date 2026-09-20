@@ -19,7 +19,13 @@ class CelestialBody {
     this.radius = radius || Math.max(3.5, Math.pow(mass, 0.38) * 2.8);
 
     // Classification & Color palette
-    if (mass >= 450) {
+    if (mass >= 1100) {
+      this.type = 'black_hole'; // Supermassive Singularity
+      this.color = '#000000';
+      this.secondaryColor = '#00f2fe';
+      this.glowColor = 'rgba(170, 70, 255, 0.45)';
+      this.radius = Math.max(9, Math.pow(mass, 0.35) * 2.2);
+    } else if (mass >= 450) {
       this.type = 'star'; // Solar Star / Pulsar
       this.color = color || '#ff4b4b';
       this.secondaryColor = '#ffe066';
@@ -46,14 +52,15 @@ class CelestialBody {
       this.glowColor = 'rgba(168, 255, 120, 0.2)';
     }
 
-    // Rings for giants
-    this.hasRings = (this.type === 'gas_giant' || this.type === 'ice_giant');
-    this.ringTilt = (Math.random() * 0.35 + 0.25) * (Math.random() > 0.5 ? 1 : -1);
+    // Rings for giants & Black hole accretion disk parameters
+    this.hasRings = (this.type === 'gas_giant' || this.type === 'ice_giant' || this.type === 'black_hole');
+    this.ringTilt = this.type === 'black_hole' ? 0.38 : (Math.random() * 0.35 + 0.25) * (Math.random() > 0.5 ? 1 : -1);
     this.ringAngle = Math.random() * Math.PI;
-    this.ringInner = this.radius * 1.5;
-    this.ringOuter = this.radius * 2.6;
+    this.ringInner = this.type === 'black_hole' ? this.radius * 1.6 : this.radius * 1.5;
+    this.ringOuter = this.type === 'black_hole' ? this.radius * 3.6 : this.radius * 2.6;
+    this.consumedCount = 0;
 
-    // Star pulsation and rotation
+    // Star / singularity pulsation and rotation
     this.rotation = Math.random() * Math.PI * 2;
     this.rotationSpeed = (Math.random() - 0.5) * 1.2;
     this.flarePhase = Math.random() * Math.PI * 2;
@@ -136,15 +143,50 @@ class PhysicsEngine {
   step(dt, width, height) {
     const n = this.bodies.length;
 
+    const toRemove = new Set();
+
     // 1. Compute Gravitational Forces
     for (let i = 0; i < n; i++) {
       const b1 = this.bodies[i];
+      if (toRemove.has(b1.id)) continue;
+
       for (let j = i + 1; j < n; j++) {
         const b2 = this.bodies[j];
+        if (toRemove.has(b2.id)) continue;
+
         const dx = b2.x - b1.x;
         const dy = b2.y - b1.y;
         const distSq = dx * dx + dy * dy;
         const dist = Math.sqrt(distSq);
+
+        // Check Black Hole Event Horizon Accretion
+        const isB1Hole = b1.type === 'black_hole';
+        const isB2Hole = b2.type === 'black_hole';
+
+        if (isB1Hole || isB2Hole) {
+          const eater = isB1Hole && (!isB2Hole || b1.mass >= b2.mass) ? b1 : b2;
+          const food = eater === b1 ? b2 : b1;
+          const horizon = eater.radius * 1.1;
+
+          if (dist < horizon) {
+            // Accrete food into eater
+            eater.mass += food.mass * 0.45;
+            eater.radius = Math.max(9, Math.pow(eater.mass, 0.35) * 2.2);
+            eater.ringInner = eater.radius * 1.6;
+            eater.ringOuter = eater.radius * 3.6;
+            eater.flash = 1.0;
+            eater.consumedCount++;
+            this.totalEvents++;
+
+            const panX = (eater.x / width) * 2 - 1;
+            if (window.CosmicAudio && window.CosmicAudio.triggerGravitationalChirp) {
+              window.CosmicAudio.triggerGravitationalChirp(panX);
+            }
+
+            toRemove.add(food.id);
+            continue;
+          }
+        }
 
         // Check Proximity Resonance
         const triggerDistance = b1.radius + b2.radius + 35;
@@ -178,6 +220,10 @@ class PhysicsEngine {
           b2.ay -= fy * b1.mass;
         }
       }
+    }
+
+    if (toRemove.size > 0) {
+      this.bodies = this.bodies.filter(b => !toRemove.has(b.id));
     }
 
     // 2. Step bodies & check Resonance Rings
@@ -329,6 +375,24 @@ class PhysicsEngine {
           vy: Math.cos(angle) * speed,
           mass: 5 + Math.random() * 15,
           color: ['#00f2fe', '#f093fb', '#00f5a0', '#ffea79'][i % 4]
+        }));
+      }
+    } else if (name === 'gargantua') {
+      // Supermassive Black Hole & Accretion Infall
+      this.addBody(new CelestialBody({ x: cx, y: cy, vx: 0, vy: 0, mass: 1800, isFixed: true }));
+
+      const count = 10;
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+        const dist = 120 + i * 34;
+        const speed = Math.sqrt((this.G * 1800) / dist) * (0.94 + Math.random() * 0.08);
+        this.addBody(new CelestialBody({
+          x: cx + Math.cos(angle) * dist,
+          y: cy + Math.sin(angle) * dist,
+          vx: -Math.sin(angle) * speed,
+          vy: Math.cos(angle) * speed,
+          mass: 8 + Math.random() * 25,
+          color: ['#00f2fe', '#ffe3a0', '#ff4b4b', '#a8ff78', '#f093fb'][i % 5]
         }));
       }
     }
