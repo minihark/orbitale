@@ -1,0 +1,12 @@
+{
+  "name": "orbitale",
+  "version": "1.0.0",
+  "description": "Orbitale — Gravitational Audio Synthesizer & Orbital Resonance Generator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["generative-audio", "orbital-physics", "synthesizer", "canvas"],
+  "author": "minihark",
+  "license": "MIT"
+}

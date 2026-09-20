@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Orbitale — Gravitational Audio Synthesizer</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Background Physics Canvas -->
+  <div id="canvas-container">
+    <canvas id="cosmos-canvas"></canvas>
+  </div>
+
+  <!-- Header HUD -->
+  <header id="top-bar" class="hud-panel">
+    <div class="brand-section">
+      <div class="logo-symbol"></div>
+      <div>
+        <div class="brand-title">Orbitale</div>
+        <div class="brand-sub">Gravitational Resonance Lab</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <!-- Preset Selection -->
+      <select id="preset-select" aria-label="Preset Scenario">
+        <option value="kepler">Keplerian Waltz</option>
+        <option value="three_body">Three-Body Chaos</option>
+        <option value="binary">Binary Pulsar</option>
+        <option value="swarm">Asteroid Swarm</option>
+      </select>
+
+      <button id="btn-pause">⏸ Pause</button>
+      <button id="btn-clear">🧹 Clear</button>
+
+      <!-- Audio Status Toggle -->
+      <div id="audio-status" class="audio-badge" title="Toggle Master Audio">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <span>AUDIO</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Telemetry HUD -->
+  <aside id="telemetry-hud" class="hud-panel">
+    <div class="hud-row">
+      <span>SIMULATION FPS</span>
+      <span id="hud-fps" class="hud-val">60</span>
+    </div>
+    <div class="hud-row">
+      <span>ACTIVE BODIES</span>
+      <span id="hud-bodies" class="hud-val">5</span>
+    </div>
+    <div class="hud-row">
+      <span>HARMONIC RESONANCES</span>
+      <span id="hud-events" class="hud-val">0</span>
+    </div>
+    <div class="hud-row">
+      <span>SYNTH ENGINE</span>
+      <span class="hud-val">FM + Reverb</span>
+    </div>
+  </aside>
+
+  <!-- Interactive Hint -->
+  <div id="interaction-hint">✦ Click & Drag anywhere to launch celestial bodies</div>
+
+  <!-- Bottom Floating Control Deck -->
+  <footer id="control-deck" class="hud-panel">
+    <!-- Musical Scale -->
+    <div class="control-group">
+      <span class="control-label">Harmonic Scale</span>
+      <select id="scale-select" aria-label="Harmonic Scale">
+        <option value="hirajoshi">Hirajoshi (Zen)</option>
+        <option value="pygmy">Pygmy (Deep Space)</option>
+        <option value="lydian">Lydian (Cosmic)</option>
+        <option value="dorian">Dorian (Nebula)</option>
+        <option value="ambient">Ambient Pentatonic</option>
+      </select>
+    </div>
+
+    <!-- Mass Selector -->
+    <div class="control-group">
+      <span class="control-label">Launch Mass</span>
+      <div class="mass-pills">
+        <button class="mass-btn" data-mass="5">Comet</button>
+        <button class="mass-btn active" data-mass="25">Planet</button>
+        <button class="mass-btn" data-mass="150">Giant</button>
+        <button class="mass-btn" data-mass="600">Star</button>
+      </div>
+    </div>
+
+    <!-- Gravity Slider -->
+    <div class="control-group">
+      <span class="control-label">Gravity Force</span>
+      <input type="range" id="slider-gravity" min="300" max="3000" step="50" value="1200" title="Adjust gravitational constant">
+    </div>
+
+    <!-- Reverb Slider -->
+    <div class="control-group">
+      <span class="control-label">Celestial Reverb</span>
+      <input type="range" id="slider-reverb" min="0" max="1" step="0.05" value="0.5" title="Adjust algorithmic reverb">
+    </div>
+
+    <!-- Drone Slider -->
+    <div class="control-group">
+      <span class="control-label">Cosmic Drone</span>
+      <input type="range" id="slider-drone" min="0" max="1" step="0.05" value="0.4" title="Adjust background drone volume">
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="audio.js"></script>
+  <script src="physics.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
